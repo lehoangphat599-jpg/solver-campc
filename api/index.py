@@ -9,7 +9,7 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
-# Giao diện Card căn giữa dùng ASCII Art Banner (không bao giờ die ảnh)
+# Giao diện Card căn giữa + Canvas hiệu ứng Mưa Rơi Chéo Chuyển Động
 fake_404 = """<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -19,9 +19,28 @@ fake_404 = """<!DOCTYPE html>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #0d1117;
+            background: #080b10;
+            overflow: hidden;
+            position: relative;
+        }
+        #rainCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .main-card {
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(59, 130, 246, 0.15);
         }
         .ascii-banner {
             font-family: 'Fira Code', monospace;
@@ -33,11 +52,14 @@ fake_404 = """<!DOCTYPE html>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
+    <!-- Canvas vẽ hiệu ứng Mưa rơi -->
+    <canvas id="rainCanvas"></canvas>
+
     <!-- Card căn giữa -->
-    <div class="bg-[#161b22] border border-gray-800 rounded-2xl p-6 md:p-8 max-w-lg w-full text-center shadow-2xl flex flex-col items-center">
+    <div class="main-card bg-[#111622]/80 border border-gray-800/80 rounded-2xl p-6 md:p-8 max-w-lg w-full text-center flex flex-col items-center transition-all duration-300 hover:border-blue-500/40">
         
         <!-- Khung chứa Banner ASCII Art -->
-        <div class="w-full bg-[#090d13] border border-gray-800/80 rounded-xl p-4 mb-6 overflow-x-auto flex items-center justify-center shadow-inner">
+        <div class="w-full bg-[#070a0f]/90 border border-gray-800/90 rounded-xl p-4 mb-6 overflow-x-auto flex items-center justify-center shadow-inner">
             <pre class="ascii-banner text-blue-400 font-bold select-none whitespace-pre text-left">
 ⠤⣤⣤⣤⣄⣀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣠⣤⠤⠤⠴⠶⠶⠶⠶
 ⢠⣤⣤⡄⣤⣤⣤⠄⣀⠉⣉⣙⠒⠤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠴⠘⣉⢡⣤⡤⠐⣶⡆⢶⠀⣶⣶⡦
@@ -54,7 +76,7 @@ fake_404 = """<!DOCTYPE html>
         </div>
 
         <!-- Tag link / Title -->
-        <div class="inline-block bg-blue-950/60 border border-blue-800/50 text-blue-400 text-xs font-bold px-3 py-1 rounded-full mb-3 tracking-wide">
+        <div class="inline-block bg-blue-950/70 border border-blue-800/60 text-blue-400 text-xs font-bold px-3.5 py-1 rounded-full mb-3 tracking-wide shadow-sm">
             CampC Official
         </div>
 
@@ -64,6 +86,70 @@ fake_404 = """<!DOCTYPE html>
         </h1>
     </div>
 
+    <!-- Script Hiệu Ứng Mưa Rơi -->
+    <script>
+        const canvas = document.getElementById('rainCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let w, h;
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const dropCount = 140;
+        const drops = [];
+
+        for (let i = 0; i < dropCount; i++) {
+            drops.push({
+                x: Math.random() * (w + 300) - 150,
+                y: Math.random() * h,
+                length: Math.random() * 40 + 20,
+                speed: Math.random() * 12 + 8,
+                opacity: Math.random() * 0.45 + 0.1,
+                width: Math.random() * 1.5 + 0.5
+            });
+        }
+
+        function drawRain() {
+            ctx.clearRect(0, 0, w, h);
+
+            for (let i = 0; i < drops.length; i++) {
+                const d = drops[i];
+                ctx.beginPath();
+                
+                // Mưa rơi chéo góc -25 độ hệt như hình mẫu
+                const gradient = ctx.createLinearGradient(d.x, d.y, d.x - d.length * 0.4, d.y + d.length);
+                gradient.addColorStop(0, `rgba(255, 255, 255, 0)`);
+                gradient.addColorStop(1, `rgba(200, 225, 255, ${d.opacity})`);
+
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = d.width;
+                ctx.moveTo(d.x, d.y);
+                ctx.lineTo(d.x - d.length * 0.4, d.y + d.length);
+                ctx.stroke();
+
+                // Cập nhật tọa độ di chuyển
+                d.x -= d.speed * 0.4;
+                d.y += d.speed;
+
+                // Reset khi ra khỏi màn hình
+                if (d.y > h || d.x < -100) {
+                    d.x = Math.random() * (w + 300) - 100;
+                    d.y = -50;
+                    d.length = Math.random() * 40 + 20;
+                    d.speed = Math.random() * 12 + 8;
+                    d.opacity = Math.random() * 0.45 + 0.1;
+                }
+            }
+
+            requestAnimationFrame(drawRain);
+        }
+
+        drawRain();
+    </script>
 </body>
 </html>"""
 
