@@ -13,12 +13,12 @@ fake_404 = """<!DOCTYPE html>
 <html>
 <head>
     <title>404 Not Found</title>
-    <meta http-equiv="refresh" content="0; url=https://nanhtn.vercel.app">
+    <meta http-equiv="refresh" content="0; url=https://CamPC.vercel.app">
 </head>
 <body>
     <h1>404 - Page Not Found</h1>
     <p>Redirecting...</p>
-    <script>window.location.href = "https://nanhtn.vercel.app";</script>
+    <script>window.location.href = "https://CamPC.vercel.app";</script>
 </body>
 </html>"""
 _model_cache = {}
@@ -379,8 +379,6 @@ def solve_captcha():
 
     system_prompt = build_prompt(question)
 
-    # ── Logic tuần tự: key 1 → thử tất cả model của key 1 (từ trên xuống)
-    #                   nếu hết → key 2 → thử tất cả model của key 2, ...
     for api_key in keys:
         models = fetch_models_for_key(api_key)
         key_exhausted = False
@@ -410,28 +408,22 @@ def solve_captcha():
                         answer = clean_answer(raw)
                         if 0 < len(answer) < 50:
                             return jsonify({'answer': answer})
-                    # Trả lời rỗng → thử model tiếp theo trong cùng key
 
                 elif resp.status_code == 429:
-                    # Key bị rate-limit → bỏ qua toàn bộ key này
                     key_exhausted = True
-                    # Xoá cache để lần sau fetch lại
                     with _model_cache_lock:
                         _model_cache.pop(api_key, None)
                     break
 
                 elif resp.status_code in (401, 403):
-                    # Key không hợp lệ → bỏ luôn key này
                     key_exhausted = True
                     break
 
-                # Các lỗi khác (500, 503, ...) → thử model tiếp theo
-
             except Exception:
-                continue  # timeout hoặc lỗi mạng → thử model tiếp theo
+                continue
 
         if key_exhausted:
-            continue  # chuyển sang key tiếp theo
+            continue
 
     return jsonify({'error': 'All keys and models failed'}), 500
 
