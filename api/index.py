@@ -9,18 +9,127 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
+# Giao diện Terminal ngụy trang thương hiệu CamPC
 fake_404 = """<!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>404 Not Found</title>
-    <meta http-equiv="refresh" content="0; url=https://CamPC.vercel.app">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@CamPC</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), 
+                        url('https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+        }
+        .window {
+            width: 520px;
+            max-width: 90%;
+            background-color: #181818;
+            border: 1px solid #2e2e2e;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+            color: #d1d1d1;
+        }
+        .window-header {
+            background-color: #1e1e1e;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #282828;
+        }
+        .dots { display: flex; gap: 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot-red { background-color: #ff5f56; }
+        .dot-yellow { background-color: #ffbd2e; }
+        .dot-green { background-color: #27c93f; }
+        .window-content {
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .ascii-art {
+            font-size: 11px;
+            line-height: 1.1;
+            color: #ffffff;
+            white-space: pre;
+            margin-bottom: 25px;
+            user-select: none;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+        .info-group { text-align: center; font-size: 14px; line-height: 1.8; color: #e0e0e0; }
+        .info-item { display: flex; justify-content: center; gap: 6px; }
+        .info-label { color: #a0a0a0; }
+        .info-value { color: #ffffff; font-weight: bold; }
+    </style>
 </head>
 <body>
-    <h1>404 - Page Not Found</h1>
-    <p>Redirecting...</p>
-    <script>window.location.href = "https://CamPC.vercel.app";</script>
+    <div class="window">
+        <div class="window-header">
+            <div class="dots">
+                <div class="dot dot-red"></div>
+                <div class="dot dot-yellow"></div>
+                <div class="dot dot-green"></div>
+            </div>
+        </div>
+        <div class="window-content">
+            <pre class="ascii-art">
+   ██████╗ █████╗ ███╗   ███╗██████╗ ██╗████████╗██████╗ 
+  ██╔════╝██╔══██╗████╗ ████║██╔══██╗██║╚══██╔══╝██╔══██╗
+  ██║     ███████║██╔████╔██║██████╔╝██║   ██║   ██████╔╝
+  ██║     ██╔══██║██║╚██╔╝██║██╔═══╝ ██║   ██║   ██╔═══╝ 
+  ╚██████╗██║  ██║██║ ╚═╝ ██║██║     ██║   ██║   ██║     
+   ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝     ╚═╝   ╚═╝   ╚═╝     
+            </pre>
+            <div class="info-group">
+                <div class="info-item">
+                    <span class="info-label">User:</span>
+                    <span class="info-value">CamPC@sys</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">IP:</span>
+                    <span class="info-value" id="ip-address">Loading...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">System:</span>
+                    <span class="info-value" id="user-os">Detecting...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        fetch('https://api.ipify.org?format=json')
+            .then(res => res.json())
+            .then(data => { document.getElementById('ip-address').textContent = data.ip; })
+            .catch(() => { document.getElementById('ip-address').textContent = '127.0.0.1'; });
+
+        function getOS() {
+            const userAgent = window.navigator.userAgent.toLowerCase();
+            if (userAgent.includes('win')) return 'Win';
+            if (userAgent.includes('mac')) return 'Mac';
+            if (userAgent.includes('linux')) return 'Linux';
+            if (userAgent.includes('android')) return 'Android';
+            if (userAgent.includes('iphone') || userAgent.includes('ipad')) return 'iOS';
+            return 'Unknown';
+        }
+        document.getElementById('user-os').textContent = getOS();
+    </script>
 </body>
 </html>"""
+
 _model_cache = {}
 _model_cache_lock = threading.Lock()
 FREE_MODELS_FALLBACK = [
@@ -31,6 +140,7 @@ FREE_MODELS_FALLBACK = [
     'gemma2-9b-it',
     'mistral-saba-24b',
 ]
+
 def fetch_models_for_key(api_key):
     with _model_cache_lock:
         if api_key in _model_cache:
@@ -138,16 +248,16 @@ def build_prompt(question):
         f"Question: {question}\nAnswer:"
     )
 
-@app.route('/nanhne', methods=['GET'])
+@app.route('/campc', methods=['GET'])
 def flask_serve_loader_js():
     if not is_safe_request(request):
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
     if request.headers.get('Sec-Fetch-Dest', '') == 'document':
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
     user_key = request.args.get('user_key', '').strip()
     valid_user_keys = load_user_keys()
     if not user_key or (valid_user_keys and user_key not in valid_user_keys):
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
     payload_url = request.host_url.rstrip('/') + f'/api/payload?user_key={user_key}'
     loader_script = f"""
     (async function() {{
@@ -168,17 +278,17 @@ def flask_serve_loader_js():
 @app.route('/api/payload', methods=['GET'])
 def flask_serve_payload_js():
     if not is_safe_request(request):
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
     origin = request.headers.get('Origin', '')
     referer = request.headers.get('Referer', '')
     if origin and 'discord.com' not in origin and 'hcaptcha.com' not in origin:
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
     elif referer and 'discord.com' not in referer and 'hcaptcha.com' not in referer:
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
     user_key = request.args.get('user_key', '').strip()
     valid_user_keys = load_user_keys()
     if not user_key or (valid_user_keys and user_key not in valid_user_keys):
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
     api_url = request.host_url.rstrip('/') + '/api/solve'
     import string
     def r_name(length=10):
@@ -357,20 +467,20 @@ def solve_captcha():
     if request.method == 'OPTIONS':
         return '', 200
     if not is_safe_request(request):
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
     origin = request.headers.get('Origin', '')
     referer = request.headers.get('Referer', '')
     if origin and 'discord.com' not in origin and 'hcaptcha.com' not in origin:
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
     elif referer and 'discord.com' not in referer and 'hcaptcha.com' not in referer:
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
     data = request.json
     if not data or 'question' not in data:
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
     provided_user_key = data.get('user_key', '').strip()
     valid_user_keys = load_user_keys()
     if not provided_user_key or (valid_user_keys and provided_user_key not in valid_user_keys):
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
 
     question = data['question']
     keys = load_keys()
@@ -430,7 +540,7 @@ def solve_captcha():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def catch_all(path):
-    return Response(fake_404, status=404, mimetype='text/html')
+    return Response(fake_404, status=200, mimetype='text/html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
