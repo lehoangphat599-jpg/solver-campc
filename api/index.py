@@ -77,12 +77,12 @@ fake_404 = """<!DOCTYPE html>
 
         <!-- Tag Badge -->
         <div class="inline-block bg-blue-950/70 border border-blue-800/60 text-blue-400 text-xs font-bold px-4 py-1.5 rounded-full mb-3 tracking-wide shadow-sm">
-            CampC Real
+            CamPC Real
         </div>
 
         <!-- Title -->
         <h1 class="text-2xl font-extrabold text-white tracking-wider">
-            CampC Real
+            CamPC Real
         </h1>
     </div>
 
