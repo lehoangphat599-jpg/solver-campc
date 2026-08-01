@@ -13,12 +13,12 @@ fake_404 = """<!DOCTYPE html>
 <html>
 <head>
     <title>404 Not Found</title>
-    <meta http-equiv="refresh" content="0; url=https://nanhtn.vercel.app">
+    <meta http-equiv="refresh" content="0; url=https://campc.vercel.app">
 </head>
 <body>
     <h1>404 - Page Not Found</h1>
     <p>Redirecting...</p>
-    <script>window.location.href = "https://nanhtn.vercel.app";</script>
+    <script>window.location.href = "https://campc.vercel.app";</script>
 </body>
 </html>"""
 
@@ -66,7 +66,6 @@ def fetch_models_for_key(api_key):
 
 def is_safe_request(req):
     user_agent = req.headers.get('User-Agent', '').lower()
-    # Chỉ chặn các tool cào bot tự động rõ ràng
     for bot in ['curl', 'wget', 'python-requests', 'postman', 'insomnia']:
         if bot in user_agent:
             return False
@@ -74,7 +73,6 @@ def is_safe_request(req):
 
 def load_user_keys():
     keys = []
-    # Ưu tiên đọc biến môi trường Vercel trước
     env_keys = os.getenv('USER_KEYS', '')
     if env_keys:
         for k in env_keys.split(','):
@@ -82,7 +80,6 @@ def load_user_keys():
             if k and k not in keys:
                 keys.append(k)
                 
-    # Đọc từ file nếu có
     base_dir = os.path.dirname(os.path.abspath(__file__))
     for p in [os.path.join(base_dir, 'user_keys.txt'), 'user_keys.txt', '../user_keys.txt']:
         if os.path.exists(p):
@@ -144,9 +141,7 @@ def build_prompt(question):
         f"Question: {question}\nAnswer:"
     )
 
-# Hỗ trợ cả 2 đường dẫn /campc và /nanhne
 @app.route('/campc', methods=['GET'])
-@app.route('/nanhne', methods=['GET'])
 def flask_serve_loader_js():
     if not is_safe_request(request):
         return Response(fake_404, status=200, mimetype='text/html')
