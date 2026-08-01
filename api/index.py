@@ -21,6 +21,7 @@ fake_404 = """<!DOCTYPE html>
     <script>window.location.href = "https://nanhtn.vercel.app";</script>
 </body>
 </html>"""
+
 _model_cache = {}
 _model_cache_lock = threading.Lock()
 FREE_MODELS_FALLBACK = [
@@ -31,6 +32,7 @@ FREE_MODELS_FALLBACK = [
     'gemma2-9b-it',
     'mistral-saba-24b',
 ]
+
 def fetch_models_for_key(api_key):
     with _model_cache_lock:
         if api_key in _model_cache:
@@ -64,50 +66,54 @@ def fetch_models_for_key(api_key):
 
 def is_safe_request(req):
     user_agent = req.headers.get('User-Agent', '').lower()
-    for bot in ['curl', 'postman', 'wget', 'python', 'urllib', 'httpclient',
-                'insomnia', 'node-fetch', 'axios', 'go-http-client', 'java', 'ruby', 'perl', 'php']:
+    # Chỉ chặn các tool cào bot tự động rõ ràng
+    for bot in ['curl', 'wget', 'python-requests', 'postman', 'insomnia']:
         if bot in user_agent:
             return False
-    if not user_agent or len(user_agent) < 40 or 'mozilla' not in user_agent:
-        return False
     return True
 
 def load_user_keys():
     keys = []
-    for p in ['user_keys.txt', '../user_keys.txt']:
-        if os.path.exists(p):
-            with open(p, 'r') as f:
-                for line in f:
-                    k = line.strip()
-                    if k:
-                        keys.append(k)
-            if keys:
-                break
+    # Ưu tiên đọc biến môi trường Vercel trước
     env_keys = os.getenv('USER_KEYS', '')
     if env_keys:
         for k in env_keys.split(','):
             k = k.strip()
             if k and k not in keys:
                 keys.append(k)
+                
+    # Đọc từ file nếu có
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    for p in [os.path.join(base_dir, 'user_keys.txt'), 'user_keys.txt', '../user_keys.txt']:
+        if os.path.exists(p):
+            with open(p, 'r', encoding='utf-8') as f:
+                for line in f:
+                    k = line.strip()
+                    if k and k not in keys:
+                        keys.append(k)
+            if keys:
+                break
     return keys
 
 def load_keys():
     keys = []
-    for p in ['groq.txt', '../groq.txt']:
-        if os.path.exists(p):
-            with open(p, 'r') as f:
-                for line in f:
-                    k = line.strip()
-                    if k:
-                        keys.append(k)
-            if keys:
-                break
     env_keys = os.getenv('GROQ_KEYS', '')
     if env_keys:
         for k in env_keys.split(','):
             k = k.strip()
             if k and k not in keys:
                 keys.append(k)
+                
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    for p in [os.path.join(base_dir, 'groq.txt'), 'groq.txt', '../groq.txt']:
+        if os.path.exists(p):
+            with open(p, 'r', encoding='utf-8') as f:
+                for line in f:
+                    k = line.strip()
+                    if k and k not in keys:
+                        keys.append(k)
+            if keys:
+                break
     return keys
 
 def clean_answer(answer):
@@ -138,16 +144,18 @@ def build_prompt(question):
         f"Question: {question}\nAnswer:"
     )
 
+# Hỗ trợ cả 2 đường dẫn /campc và /nanhne
+@app.route('/campc', methods=['GET'])
 @app.route('/nanhne', methods=['GET'])
 def flask_serve_loader_js():
     if not is_safe_request(request):
-        return Response(fake_404, status=404, mimetype='text/html')
-    if request.headers.get('Sec-Fetch-Dest', '') == 'document':
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
+        
     user_key = request.args.get('user_key', '').strip()
     valid_user_keys = load_user_keys()
     if not user_key or (valid_user_keys and user_key not in valid_user_keys):
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
+
     payload_url = request.host_url.rstrip('/') + f'/api/payload?user_key={user_key}'
     loader_script = f"""
     (async function() {{
@@ -168,17 +176,13 @@ def flask_serve_loader_js():
 @app.route('/api/payload', methods=['GET'])
 def flask_serve_payload_js():
     if not is_safe_request(request):
-        return Response(fake_404, status=404, mimetype='text/html')
-    origin = request.headers.get('Origin', '')
-    referer = request.headers.get('Referer', '')
-    if origin and 'discord.com' not in origin and 'hcaptcha.com' not in origin:
-        return Response(fake_404, status=404, mimetype='text/html')
-    elif referer and 'discord.com' not in referer and 'hcaptcha.com' not in referer:
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
+        
     user_key = request.args.get('user_key', '').strip()
     valid_user_keys = load_user_keys()
     if not user_key or (valid_user_keys and user_key not in valid_user_keys):
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
+
     api_url = request.host_url.rstrip('/') + '/api/solve'
     import string
     def r_name(length=10):
@@ -357,20 +361,16 @@ def solve_captcha():
     if request.method == 'OPTIONS':
         return '', 200
     if not is_safe_request(request):
-        return Response(fake_404, status=404, mimetype='text/html')
-    origin = request.headers.get('Origin', '')
-    referer = request.headers.get('Referer', '')
-    if origin and 'discord.com' not in origin and 'hcaptcha.com' not in origin:
-        return Response(fake_404, status=404, mimetype='text/html')
-    elif referer and 'discord.com' not in referer and 'hcaptcha.com' not in referer:
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
+
     data = request.json
     if not data or 'question' not in data:
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
+        
     provided_user_key = data.get('user_key', '').strip()
     valid_user_keys = load_user_keys()
     if not provided_user_key or (valid_user_keys and provided_user_key not in valid_user_keys):
-        return Response(fake_404, status=404, mimetype='text/html')
+        return Response(fake_404, status=200, mimetype='text/html')
 
     question = data['question']
     keys = load_keys()
@@ -379,8 +379,6 @@ def solve_captcha():
 
     system_prompt = build_prompt(question)
 
-    # ── Logic tuần tự: key 1 → thử tất cả model của key 1 (từ trên xuống)
-    #                   nếu hết → key 2 → thử tất cả model của key 2, ...
     for api_key in keys:
         models = fetch_models_for_key(api_key)
         key_exhausted = False
@@ -410,35 +408,29 @@ def solve_captcha():
                         answer = clean_answer(raw)
                         if 0 < len(answer) < 50:
                             return jsonify({'answer': answer})
-                    # Trả lời rỗng → thử model tiếp theo trong cùng key
 
                 elif resp.status_code == 429:
-                    # Key bị rate-limit → bỏ qua toàn bộ key này
                     key_exhausted = True
-                    # Xoá cache để lần sau fetch lại
                     with _model_cache_lock:
                         _model_cache.pop(api_key, None)
                     break
 
                 elif resp.status_code in (401, 403):
-                    # Key không hợp lệ → bỏ luôn key này
                     key_exhausted = True
                     break
 
-                # Các lỗi khác (500, 503, ...) → thử model tiếp theo
-
             except Exception:
-                continue  # timeout hoặc lỗi mạng → thử model tiếp theo
+                continue
 
         if key_exhausted:
-            continue  # chuyển sang key tiếp theo
+            continue
 
     return jsonify({'error': 'All keys and models failed'}), 500
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def catch_all(path):
-    return Response(fake_404, status=404, mimetype='text/html')
+    return Response(fake_404, status=200, mimetype='text/html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
