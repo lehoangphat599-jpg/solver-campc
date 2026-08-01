@@ -9,16 +9,43 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
+# Giao diện đơn giản: 1 Card nằm giữa màn hình
 fake_404 = """<!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>404 Not Found</title>
-    <meta http-equiv="refresh" content="0; url=https://campc.vercel.app">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampC Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0d1117;
+        }
+    </style>
 </head>
-<body>
-    <h1>404 - Page Not Found</h1>
-    <p>Redirecting...</p>
-    <script>window.location.href = "https://campc.vercel.app";</script>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Card căn giữa -->
+    <div class="bg-[#161b22] border border-gray-800 rounded-2xl p-6 md:p-8 max-w-sm w-full text-center shadow-2xl flex flex-col items-center">
+        
+        <!-- Logo Container -->
+        <div class="w-48 h-48 bg-white rounded-xl p-3 flex items-center justify-center shadow-lg mb-6 overflow-hidden">
+            <img src="https://i.ibb.co/3sL9V44/hsp.jpg" alt="HSP Logo" class="w-full h-full object-contain">
+        </div>
+
+        <!-- Title / Link Tag -->
+        <div class="inline-block bg-blue-950/60 border border-blue-800/50 text-blue-400 text-xs font-bold px-3 py-1 rounded-full mb-3 tracking-wide">
+            CampC Official
+        </div>
+
+        <!-- Caption -->
+        <h1 class="text-2xl font-extrabold text-white tracking-wider">
+            AE HSP
+        </h1>
+    </div>
+
 </body>
 </html>"""
 
