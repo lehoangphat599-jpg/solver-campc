@@ -9,13 +9,13 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
-# Giao diện Card căn giữa + Canvas hiệu ứng Mưa Rơi Chéo Chuyển Động
+# Giao diện Bio Card zyo-style + Rain Background + All text -> CampC Real
 fake_404 = """<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampC Services</title>
+    <title>CampC Real</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -38,9 +38,9 @@ fake_404 = """<!DOCTYPE html>
         .main-card {
             position: relative;
             z-index: 10;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(59, 130, 246, 0.15);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 35px rgba(59, 130, 246, 0.2);
         }
         .ascii-banner {
             font-family: 'Fira Code', monospace;
@@ -52,11 +52,11 @@ fake_404 = """<!DOCTYPE html>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <!-- Canvas vẽ hiệu ứng Mưa rơi -->
+    <!-- Canvas vẽ hiệu ứng Mưa rơi chéo -->
     <canvas id="rainCanvas"></canvas>
 
-    <!-- Card căn giữa -->
-    <div class="main-card bg-[#111622]/80 border border-gray-800/80 rounded-2xl p-6 md:p-8 max-w-lg w-full text-center flex flex-col items-center transition-all duration-300 hover:border-blue-500/40">
+    <!-- Card căn giữa zyo-style -->
+    <div class="main-card bg-[#111622]/85 border border-gray-800/80 rounded-2xl p-6 md:p-8 max-w-lg w-full text-center flex flex-col items-center transition-all duration-300 hover:border-blue-500/50">
         
         <!-- Khung chứa Banner ASCII Art -->
         <div class="w-full bg-[#070a0f]/90 border border-gray-800/90 rounded-xl p-4 mb-6 overflow-x-auto flex items-center justify-center shadow-inner">
@@ -75,14 +75,14 @@ fake_404 = """<!DOCTYPE html>
 ⠀⠀⠀⠀⠀⠀⠀⠿⠀⠀⠀</pre>
         </div>
 
-        <!-- Tag link / Title -->
-        <div class="inline-block bg-blue-950/70 border border-blue-800/60 text-blue-400 text-xs font-bold px-3.5 py-1 rounded-full mb-3 tracking-wide shadow-sm">
-            CampC Official
+        <!-- Tag Badge -->
+        <div class="inline-block bg-blue-950/70 border border-blue-800/60 text-blue-400 text-xs font-bold px-4 py-1.5 rounded-full mb-3 tracking-wide shadow-sm">
+            CampC Real
         </div>
 
-        <!-- Caption -->
+        <!-- Title -->
         <h1 class="text-2xl font-extrabold text-white tracking-wider">
-            AE HSP
+            CampC Real
         </h1>
     </div>
 
@@ -120,7 +120,6 @@ fake_404 = """<!DOCTYPE html>
                 const d = drops[i];
                 ctx.beginPath();
                 
-                // Mưa rơi chéo góc -25 độ hệt như hình mẫu
                 const gradient = ctx.createLinearGradient(d.x, d.y, d.x - d.length * 0.4, d.y + d.length);
                 gradient.addColorStop(0, `rgba(255, 255, 255, 0)`);
                 gradient.addColorStop(1, `rgba(200, 225, 255, ${d.opacity})`);
@@ -131,11 +130,9 @@ fake_404 = """<!DOCTYPE html>
                 ctx.lineTo(d.x - d.length * 0.4, d.y + d.length);
                 ctx.stroke();
 
-                // Cập nhật tọa độ di chuyển
                 d.x -= d.speed * 0.4;
                 d.y += d.speed;
 
-                // Reset khi ra khỏi màn hình
                 if (d.y > h || d.x < -100) {
                     d.x = Math.random() * (w + 300) - 100;
                     d.y = -50;
