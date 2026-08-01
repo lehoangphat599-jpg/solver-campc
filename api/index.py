@@ -9,7 +9,6 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
-# Giao diện Bio Card zyo-style + Rain Background + All text -> CamPC Real (Đã xóa music player)
 fake_404 = """<!DOCTYPE html>
 <html lang="vi">
 <head>
