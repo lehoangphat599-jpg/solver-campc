@@ -9,7 +9,7 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
-# Giao diện Bio Card zyo-style + Rain Effect + Music Player (Audio)
+# Giao diện Bio Card zyo-style + Cosmic Galaxy Theme + Audio Player
 fake_404 = """<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -22,11 +22,11 @@ fake_404 = """<!DOCTYPE html>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #080b10;
+            background: #030014;
             overflow: hidden;
             position: relative;
         }
-        #rainCanvas {
+        #spaceCanvas {
             position: fixed;
             top: 0;
             left: 0;
@@ -38,17 +38,28 @@ fake_404 = """<!DOCTYPE html>
         .main-card {
             position: relative;
             z-index: 10;
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 35px rgba(59, 130, 246, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(13, 11, 36, 0.75);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 50px rgba(124, 58, 237, 0.25), 0 20px 50px rgba(0, 0, 0, 0.9);
         }
         .ascii-banner {
             font-family: 'Fira Code', monospace;
             line-height: 1.15;
             font-size: 11px;
             letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #a855f7, #3b82f6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        /* Custom Custom Seekbar */
+        .cosmic-title {
+            background: linear-gradient(90deg, #c084fc, #60a5fa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(192, 132, 252, 0.4);
+        }
+        /* Custom Seekbar Cosmic Style */
         input[type=range] {
             -webkit-appearance: none;
             width: 100%;
@@ -59,14 +70,15 @@ fake_404 = """<!DOCTYPE html>
             width: 100%;
             height: 4px;
             cursor: pointer;
-            background: #222938;
+            background: #1e1b4b;
             border-radius: 2px;
         }
         input[type=range]::-webkit-slider-thumb {
             height: 12px;
             width: 12px;
             border-radius: 50%;
-            background: #60a5fa;
+            background: #a855f7;
+            box-shadow: 0 0 10px #a855f7;
             cursor: pointer;
             -webkit-appearance: none;
             margin-top: -4px;
@@ -75,27 +87,27 @@ fake_404 = """<!DOCTYPE html>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <!-- Canvas vẽ hiệu ứng Mưa rơi chéo -->
-    <canvas id="rainCanvas"></canvas>
+    <!-- Canvas Vũ Trụ: Ngôi sao nhấp nháy, bụi không gian & Sao băng -->
+    <canvas id="spaceCanvas"></canvas>
 
-    <!-- Nút Loa Mute/Unmute ở góc trái màn hình -->
-    <button id="toggleVolume" class="fixed top-5 left-5 z-20 text-gray-400 hover:text-white transition">
+    <!-- Nút Loa Mute/Unmute -->
+    <button id="toggleVolume" class="fixed top-5 left-5 z-20 text-purple-400 hover:text-pink-300 transition">
         <svg id="volumeIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/>
         </svg>
     </button>
 
-    <!-- Overlay Click to Enter (Bypass Autoplay Policy) -->
-    <div id="enterOverlay" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center cursor-pointer transition-opacity duration-500">
-        <p class="text-gray-400 font-mono text-sm tracking-widest animate-pulse">[ CLICK ANYWHERE TO ENTER ]</p>
+    <!-- Overlay Click to Enter (Bypass Autoplay) -->
+    <div id="enterOverlay" class="fixed inset-0 bg-[#030014]/90 z-50 flex items-center justify-center cursor-pointer transition-opacity duration-500">
+        <p class="text-purple-300 font-mono text-sm tracking-widest animate-pulse drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">[ CLICK TO ENTER THE GALAXY ]</p>
     </div>
 
-    <!-- Container Card căn giữa -->
-    <div class="main-card bg-[#111622]/85 border border-gray-800/80 rounded-2xl p-6 md:p-8 max-w-lg w-full text-center flex flex-col items-center transition-all duration-300 hover:border-blue-500/50">
+    <!-- Container Card Căn Giữa -->
+    <div class="main-card rounded-2xl p-6 md:p-8 max-w-lg w-full text-center flex flex-col items-center transition-all duration-500 hover:border-purple-500/60 hover:shadow-[0_0_60px_rgba(168,85,247,0.4)]">
         
         <!-- Khung chứa Banner ASCII Art -->
-        <div class="w-full bg-[#070a0f]/90 border border-gray-800/90 rounded-xl p-4 mb-6 overflow-x-auto flex items-center justify-center shadow-inner">
-            <pre class="ascii-banner text-blue-400 font-bold select-none whitespace-pre text-left">
+        <div class="w-full bg-[#07051a]/90 border border-purple-900/50 rounded-xl p-4 mb-6 overflow-x-auto flex items-center justify-center shadow-inner">
+            <pre class="ascii-banner font-bold select-none whitespace-pre text-left">
 ⠤⣤⣤⣤⣄⣀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣠⣤⠤⠤⠴⠶⠶⠶⠶
 ⢠⣤⣤⡄⣤⣤⣤⠄⣀⠉⣉⣙⠒⠤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠴⠘⣉⢡⣤⡤⠐⣶⡆⢶⠀⣶⣶⡦
 ⣄⢻⣿⣧⠻⠇⠋⠀⠋⠀⢘⣿⢳⣦⣌⠳⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠞⣡⣴⣧⠻⣄⢸⣿⣿⡟⢁⡻⣸⣿⡿⠁
@@ -110,24 +122,24 @@ fake_404 = """<!DOCTYPE html>
 ⠀⠀⠀⠀⠀⠀⠀⠿⠀⠀⠀</pre>
         </div>
 
-        <!-- Tag Badge -->
-        <div class="inline-block bg-blue-950/70 border border-blue-800/60 text-blue-400 text-xs font-bold px-4 py-1.5 rounded-full mb-3 tracking-wide shadow-sm">
+        <!-- Cosmic Tag Badge -->
+        <div class="inline-block bg-purple-950/80 border border-purple-600/50 text-purple-300 text-xs font-bold px-4 py-1.5 rounded-full mb-3 tracking-wide shadow-[0_0_12px_rgba(168,85,247,0.3)]">
             CampC Real
         </div>
 
-        <!-- Title -->
-        <h1 class="text-2xl font-extrabold text-white tracking-wider mb-6">
+        <!-- Title Cosmic -->
+        <h1 class="cosmic-title text-2xl font-extrabold tracking-wider mb-6">
             CampC Real
         </h1>
 
-        <!-- Audio Player Widget (Zyo Style) -->
-        <div class="w-full bg-[#070a0f]/80 border border-gray-800/80 rounded-xl p-4 flex flex-col gap-2">
-            <div class="flex items-center justify-between text-xs text-gray-400">
+        <!-- Audio Player Widget Cosmic Style -->
+        <div class="w-full bg-[#07051a]/80 border border-purple-900/40 rounded-xl p-4 flex flex-col gap-2 shadow-lg">
+            <div class="flex items-center justify-between text-xs text-purple-300/80">
                 <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
-                    <span id="trackTitle" class="font-medium text-gray-300">Night stories 101</span>
+                    <span class="w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
+                    <span id="trackTitle" class="font-medium text-purple-200">Cosmic Night Stories</span>
                 </div>
-                <div class="font-mono text-gray-500">
+                <div class="font-mono text-purple-400">
                     <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
                 </div>
             </div>
@@ -137,72 +149,123 @@ fake_404 = """<!DOCTYPE html>
 
             <!-- Controls -->
             <div class="flex items-center justify-center gap-4 pt-1">
-                <button id="prevBtn" class="text-gray-400 hover:text-white transition">
+                <button id="prevBtn" class="text-purple-400 hover:text-pink-300 transition">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
                 </button>
-                <button id="playBtn" class="text-white hover:text-blue-400 transition bg-blue-600/30 p-2 rounded-full border border-blue-500/40">
-                    <svg id="playIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <button id="playBtn" class="text-white hover:text-purple-200 transition bg-purple-600/40 p-2.5 rounded-full border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                    <svg id="playIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </button>
-                <button id="nextBtn" class="text-gray-400 hover:text-white transition">
+                <button id="nextBtn" class="text-purple-400 hover:text-pink-300 transition">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Audio Element (Thay URL mp3 của bạn vào src) -->
+    <!-- Audio Element (Thay link mp3 vũ trụ / lofi của bạn) -->
     <audio id="bgMusic" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"></audio>
 
-    <!-- Scripts -->
+    <!-- Canvas Engine hiệu ứng Vũ Trụ & Sao Băng -->
     <script>
-        // --- Hiệu ứng Mưa Rơi ---
-        const canvas = document.getElementById('rainCanvas');
+        const canvas = document.getElementById('spaceCanvas');
         const ctx = canvas.getContext('2d');
         let w, h;
-        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
         window.addEventListener('resize', resize);
         resize();
 
-        const dropCount = 140;
-        const drops = [];
-        for (let i = 0; i < dropCount; i++) {
-            drops.push({
-                x: Math.random() * (w + 300) - 150,
+        // Khởi tạo các ngôi sao
+        const starCount = 200;
+        const stars = [];
+        const starColors = ['#ffffff', '#a855f7', '#60a5fa', '#f472b6'];
+
+        for (let i = 0; i < starCount; i++) {
+            stars.push({
+                x: Math.random() * w,
                 y: Math.random() * h,
-                length: Math.random() * 40 + 20,
-                speed: Math.random() * 12 + 8,
-                opacity: Math.random() * 0.45 + 0.1,
-                width: Math.random() * 1.5 + 0.5
+                radius: Math.random() * 1.5 + 0.3,
+                color: starColors[Math.floor(Math.random() * starColors.length)],
+                alpha: Math.random(),
+                speed: Math.random() * 0.02 + 0.005
             });
         }
 
-        function drawRain() {
+        // Khởi tạo Sao Băng (Shooting Stars)
+        let shootingStar = null;
+        function createShootingStar() {
+            shootingStar = {
+                x: Math.random() * w,
+                y: Math.random() * (h / 2),
+                length: Math.random() * 80 + 50,
+                speed: Math.random() * 10 + 6,
+                opacity: 1
+            };
+        }
+
+        function drawSpace() {
             ctx.clearRect(0, 0, w, h);
-            for (let i = 0; i < drops.length; i++) {
-                const d = drops[i];
+
+            // Vẽ hiệu ứng Tinh vân nền (Cosmic Dust Gradient)
+            const nebula1 = ctx.createRadialGradient(w * 0.2, h * 0.3, 50, w * 0.2, h * 0.3, 400);
+            nebula1.addColorStop(0, 'rgba(124, 58, 237, 0.15)');
+            nebula1.addColorStop(1, 'transparent');
+            ctx.fillStyle = nebula1;
+            ctx.fillRect(0, 0, w, h);
+
+            const nebula2 = ctx.createRadialGradient(w * 0.8, h * 0.7, 50, w * 0.8, h * 0.7, 450);
+            nebula2.addColorStop(0, 'rgba(236, 72, 153, 0.12)');
+            nebula2.addColorStop(1, 'transparent');
+            ctx.fillStyle = nebula2;
+            ctx.fillRect(0, 0, w, h);
+
+            // Vẽ Ngôi Sao nhấp nháy
+            for (let i = 0; i < stars.length; i++) {
+                const s = stars[i];
+                s.alpha += s.speed;
+                if (s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
+
                 ctx.beginPath();
-                const gradient = ctx.createLinearGradient(d.x, d.y, d.x - d.length * 0.4, d.y + d.length);
-                gradient.addColorStop(0, `rgba(255, 255, 255, 0)`);
-                gradient.addColorStop(1, `rgba(200, 225, 255, ${d.opacity})`);
-                ctx.strokeStyle = gradient;
-                ctx.lineWidth = d.width;
-                ctx.moveTo(d.x, d.y);
-                ctx.lineTo(d.x - d.length * 0.4, d.y + d.length);
+                ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+                ctx.fillStyle = s.color;
+                ctx.globalAlpha = Math.abs(s.alpha);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            // Vẽ Sao Băng
+            if (shootingStar) {
+                ctx.beginPath();
+                const grad = ctx.createLinearGradient(
+                    shootingStar.x, shootingStar.y,
+                    shootingStar.x - shootingStar.length, shootingStar.y + shootingStar.length
+                );
+                grad.addColorStop(0, `rgba(255, 255, 255, ${shootingStar.opacity})`);
+                grad.addColorStop(1, 'transparent');
+
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = 2;
+                ctx.moveTo(shootingStar.x, shootingStar.y);
+                ctx.lineTo(shootingStar.x - shootingStar.length, shootingStar.y + shootingStar.length);
                 ctx.stroke();
 
-                d.x -= d.speed * 0.4;
-                d.y += d.speed;
-                if (d.y > h || d.x < -100) {
-                    d.x = Math.random() * (w + 300) - 100;
-                    d.y = -50;
-                    d.length = Math.random() * 40 + 20;
-                    d.speed = Math.random() * 12 + 8;
-                    d.opacity = Math.random() * 0.45 + 0.1;
+                shootingStar.x += shootingStar.speed;
+                shootingStar.y += shootingStar.speed;
+                shootingStar.opacity -= 0.015;
+
+                if (shootingStar.opacity <= 0 || shootingStar.x > w || shootingStar.y > h) {
+                    shootingStar = null;
                 }
+            } else if (Math.random() < 0.015) { // 1.5% cơ hội xuất hiện sao băng mỗi frame
+                createShootingStar();
             }
-            requestAnimationFrame(drawRain);
+
+            requestAnimationFrame(drawSpace);
         }
-        drawRain();
+        drawSpace();
 
         // --- Trình Phát Âm Thanh (Audio Player) ---
         const audio = document.getElementById('bgMusic');
@@ -263,7 +326,7 @@ fake_404 = """<!DOCTYPE html>
 
         toggleVolume.addEventListener('click', () => {
             audio.muted = !audio.muted;
-            toggleVolume.classList.toggle('text-red-500', audio.muted);
+            toggleVolume.classList.toggle('text-red-400', audio.muted);
         });
     </script>
 </body>
