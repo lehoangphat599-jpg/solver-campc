@@ -9,12 +9,13 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
+# Giao diện Bio Card zyo-style + Rain Effect + Music Player (Audio)
 fake_404 = """<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CamPC Real</title>
+    <title>CampC Real</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -47,6 +48,29 @@ fake_404 = """<!DOCTYPE html>
             font-size: 11px;
             letter-spacing: -0.5px;
         }
+        /* Custom Custom Seekbar */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #222938;
+            border-radius: 2px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #60a5fa;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -4px;
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -54,7 +78,19 @@ fake_404 = """<!DOCTYPE html>
     <!-- Canvas vẽ hiệu ứng Mưa rơi chéo -->
     <canvas id="rainCanvas"></canvas>
 
-    <!-- Card căn giữa zyo-style -->
+    <!-- Nút Loa Mute/Unmute ở góc trái màn hình -->
+    <button id="toggleVolume" class="fixed top-5 left-5 z-20 text-gray-400 hover:text-white transition">
+        <svg id="volumeIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/>
+        </svg>
+    </button>
+
+    <!-- Overlay Click to Enter (Bypass Autoplay Policy) -->
+    <div id="enterOverlay" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center cursor-pointer transition-opacity duration-500">
+        <p class="text-gray-400 font-mono text-sm tracking-widest animate-pulse">[ CLICK ANYWHERE TO ENTER ]</p>
+    </div>
+
+    <!-- Container Card căn giữa -->
     <div class="main-card bg-[#111622]/85 border border-gray-800/80 rounded-2xl p-6 md:p-8 max-w-lg w-full text-center flex flex-col items-center transition-all duration-300 hover:border-blue-500/50">
         
         <!-- Khung chứa Banner ASCII Art -->
@@ -64,7 +100,7 @@ fake_404 = """<!DOCTYPE html>
 ⢠⣤⣤⡄⣤⣤⣤⠄⣀⠉⣉⣙⠒⠤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠴⠘⣉⢡⣤⡤⠐⣶⡆⢶⠀⣶⣶⡦
 ⣄⢻⣿⣧⠻⠇⠋⠀⠋⠀⢘⣿⢳⣦⣌⠳⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠞⣡⣴⣧⠻⣄⢸⣿⣿⡟⢁⡻⣸⣿⡿⠁
 ⠈⠃⠙⢿⣧⣙⠶⣿⣿⡷⢘⣡⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿⣷⣝⡳⠶⠶⠾⣛⣵⡿⠋⠀⠀
-⠀⠀⠀⠀⠉⠻⣿⣶⠂⠘⠛⠛⠛⢛⡛⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠛⠀⠉⠒⠛⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠉⠻⣿⣶⠂⠘⠛⠛⠛⢛⡛⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠛⠀⠉⠒⠛⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⢸⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -76,31 +112,59 @@ fake_404 = """<!DOCTYPE html>
 
         <!-- Tag Badge -->
         <div class="inline-block bg-blue-950/70 border border-blue-800/60 text-blue-400 text-xs font-bold px-4 py-1.5 rounded-full mb-3 tracking-wide shadow-sm">
-            CamPC Real
+            CampC Real
         </div>
 
         <!-- Title -->
-        <h1 class="text-2xl font-extrabold text-white tracking-wider">
-            CamPC Real
+        <h1 class="text-2xl font-extrabold text-white tracking-wider mb-6">
+            CampC Real
         </h1>
+
+        <!-- Audio Player Widget (Zyo Style) -->
+        <div class="w-full bg-[#070a0f]/80 border border-gray-800/80 rounded-xl p-4 flex flex-col gap-2">
+            <div class="flex items-center justify-between text-xs text-gray-400">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
+                    <span id="trackTitle" class="font-medium text-gray-300">Night stories 101</span>
+                </div>
+                <div class="font-mono text-gray-500">
+                    <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                </div>
+            </div>
+
+            <!-- Seekbar Slider -->
+            <input type="range" id="seekBar" value="0" min="0" max="100" class="w-full">
+
+            <!-- Controls -->
+            <div class="flex items-center justify-center gap-4 pt-1">
+                <button id="prevBtn" class="text-gray-400 hover:text-white transition">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                </button>
+                <button id="playBtn" class="text-white hover:text-blue-400 transition bg-blue-600/30 p-2 rounded-full border border-blue-500/40">
+                    <svg id="playIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                <button id="nextBtn" class="text-gray-400 hover:text-white transition">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- Script Hiệu Ứng Mưa Rơi -->
+    <!-- Audio Element (Thay URL mp3 của bạn vào src) -->
+    <audio id="bgMusic" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"></audio>
+
+    <!-- Scripts -->
     <script>
+        // --- Hiệu ứng Mưa Rơi ---
         const canvas = document.getElementById('rainCanvas');
         const ctx = canvas.getContext('2d');
-
         let w, h;
-        function resize() {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
-        }
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize);
         resize();
 
         const dropCount = 140;
         const drops = [];
-
         for (let i = 0; i < dropCount; i++) {
             drops.push({
                 x: Math.random() * (w + 300) - 150,
@@ -114,15 +178,12 @@ fake_404 = """<!DOCTYPE html>
 
         function drawRain() {
             ctx.clearRect(0, 0, w, h);
-
             for (let i = 0; i < drops.length; i++) {
                 const d = drops[i];
                 ctx.beginPath();
-                
                 const gradient = ctx.createLinearGradient(d.x, d.y, d.x - d.length * 0.4, d.y + d.length);
                 gradient.addColorStop(0, `rgba(255, 255, 255, 0)`);
                 gradient.addColorStop(1, `rgba(200, 225, 255, ${d.opacity})`);
-
                 ctx.strokeStyle = gradient;
                 ctx.lineWidth = d.width;
                 ctx.moveTo(d.x, d.y);
@@ -131,7 +192,6 @@ fake_404 = """<!DOCTYPE html>
 
                 d.x -= d.speed * 0.4;
                 d.y += d.speed;
-
                 if (d.y > h || d.x < -100) {
                     d.x = Math.random() * (w + 300) - 100;
                     d.y = -50;
@@ -140,11 +200,71 @@ fake_404 = """<!DOCTYPE html>
                     d.opacity = Math.random() * 0.45 + 0.1;
                 }
             }
-
             requestAnimationFrame(drawRain);
         }
-
         drawRain();
+
+        // --- Trình Phát Âm Thanh (Audio Player) ---
+        const audio = document.getElementById('bgMusic');
+        const overlay = document.getElementById('enterOverlay');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const seekBar = document.getElementById('seekBar');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        const toggleVolume = document.getElementById('toggleVolume');
+
+        let isPlaying = false;
+
+        function formatTime(sec) {
+            if (isNaN(sec)) return "0:00";
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                audio.pause();
+                playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+            } else {
+                audio.play();
+                playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+            }
+            isPlaying = !isPlaying;
+        }
+
+        overlay.addEventListener('click', () => {
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.remove(), 500);
+            audio.play();
+            isPlaying = true;
+            playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        });
+
+        playBtn.addEventListener('click', togglePlay);
+
+        audio.addEventListener('loadedmetadata', () => {
+            durationEl.innerText = formatTime(audio.duration);
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            currentTimeEl.innerText = formatTime(audio.currentTime);
+            if (audio.duration) {
+                seekBar.value = (audio.currentTime / audio.duration) * 100;
+            }
+        });
+
+        seekBar.addEventListener('input', () => {
+            if (audio.duration) {
+                audio.currentTime = (seekBar.value / 100) * audio.duration;
+            }
+        });
+
+        toggleVolume.addEventListener('click', () => {
+            audio.muted = !audio.muted;
+            toggleVolume.classList.toggle('text-red-500', audio.muted);
+        });
     </script>
 </body>
 </html>"""
