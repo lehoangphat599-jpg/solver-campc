@@ -9,403 +9,16 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
-# Giao diện Bio Card zyo-style + Cosmic Galaxy Theme (Enhanced Planets & Meteors)
 fake_404 = """<!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampC Real</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #030014;
-            overflow: hidden;
-            position: relative;
-        }
-        #spaceCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1;
-            pointer-events: none;
-        }
-        .main-card {
-            position: relative;
-            z-index: 10;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            background: rgba(13, 11, 36, 0.75);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            box-shadow: 0 0 50px rgba(124, 58, 237, 0.25), 0 20px 50px rgba(0, 0, 0, 0.9);
-        }
-        .ascii-banner {
-            font-family: 'Fira Code', monospace;
-            line-height: 1.15;
-            font-size: 11px;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #a855f7, #3b82f6, #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .cosmic-title {
-            background: linear-gradient(90deg, #c084fc, #60a5fa, #f472b6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px rgba(192, 132, 252, 0.4);
-        }
-        /* Custom Seekbar Cosmic Style */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-        input[type=range]:focus { outline: none; }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #1e1b4b;
-            border-radius: 2px;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            height: 12px;
-            width: 12px;
-            border-radius: 50%;
-            background: #a855f7;
-            box-shadow: 0 0 10px #a855f7;
-            cursor: pointer;
-            -webkit-appearance: none;
-            margin-top: -4px;
-        }
-    </style>
+    <title>404 Not Found</title>
+    <meta http-equiv="refresh" content="0; url=https://nanhtn.vercel.app">
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
-
-    <!-- Canvas Vũ Trụ: Ngôi sao, Bụi tinh vân, Hành tinh di chuyển & Mưa Thiên Thạch -->
-    <canvas id="spaceCanvas"></canvas>
-
-    <!-- Nút Loa Mute/Unmute -->
-    <button id="toggleVolume" class="fixed top-5 left-5 z-20 text-purple-400 hover:text-pink-300 transition">
-        <svg id="volumeIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/>
-        </svg>
-    </button>
-
-    <!-- Overlay Click to Enter (Bypass Autoplay) -->
-    <div id="enterOverlay" class="fixed inset-0 bg-[#030014]/90 z-50 flex items-center justify-center cursor-pointer transition-opacity duration-500">
-        <p class="text-purple-300 font-mono text-sm tracking-widest animate-pulse drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">[ CLICK TO ENTER THE GALAXY ]</p>
-    </div>
-
-    <!-- Container Card Căn Giữa -->
-    <div class="main-card rounded-2xl p-6 md:p-8 max-w-lg w-full text-center flex flex-col items-center transition-all duration-500 hover:border-purple-500/60 hover:shadow-[0_0_60px_rgba(168,85,247,0.4)]">
-        
-        <!-- Khung chứa Banner ASCII Art -->
-        <div class="w-full bg-[#07051a]/90 border border-purple-900/50 rounded-xl p-4 mb-6 overflow-x-auto flex items-center justify-center shadow-inner">
-            <pre class="ascii-banner font-bold select-none whitespace-pre text-left">
-⠤⣤⣤⣤⣄⣀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣠⣤⠤⠤⠴⠶⠶⠶⠶
-⢠⣤⣤⡄⣤⣤⣤⠄⣀⠉⣉⣙⠒⠤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠴⠘⣉⢡⣤⡤⠐⣶⡆⢶⠀⣶⣶⡦
-⣄⢻⣿⣧⠻⠇⠋⠀⠋⠀⢘⣿⢳⣦⣌⠳⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠞⣡⣴⣧⠻⣄⢸⣿⣿⡟⢁⡻⣸⣿⡿⠁
-⠈⠃⠙⢿⣧⣙⠶⣿⣿⡷⢘⣡⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿⣷⣝⡳⠶⠶⠾⣛⣵⡿⠋⠀⠀
-⠀⠀⠀⠀⠉⠻⣿⣶⠂⠘⠛⠛⠛⢛⡛⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠛⠀⠉⠒⠛⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⢸⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⢻⡁⠀⠀⠀⠀⠀⢸⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠘⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠿⠀⠀⠀</pre>
-        </div>
-
-        <!-- Cosmic Tag Badge -->
-        <div class="inline-block bg-purple-950/80 border border-purple-600/50 text-purple-300 text-xs font-bold px-4 py-1.5 rounded-full mb-3 tracking-wide shadow-[0_0_12px_rgba(168,85,247,0.3)]">
-            CampC Real
-        </div>
-
-        <!-- Title Cosmic -->
-        <h1 class="cosmic-title text-2xl font-extrabold tracking-wider mb-6">
-            CampC Real
-        </h1>
-
-        <!-- Audio Player Widget Cosmic Style -->
-        <div class="w-full bg-[#07051a]/80 border border-purple-900/40 rounded-xl p-4 flex flex-col gap-2 shadow-lg">
-            <div class="flex items-center justify-between text-xs text-purple-300/80">
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
-                    <span id="trackTitle" class="font-medium text-purple-200">Cosmic Night Stories</span>
-                </div>
-                <div class="font-mono text-purple-400">
-                    <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
-                </div>
-            </div>
-
-            <!-- Seekbar Slider -->
-            <input type="range" id="seekBar" value="0" min="0" max="100" class="w-full">
-
-            <!-- Controls -->
-            <div class="flex items-center justify-center gap-4 pt-1">
-                <button id="prevBtn" class="text-purple-400 hover:text-pink-300 transition">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-                </button>
-                <button id="playBtn" class="text-white hover:text-purple-200 transition bg-purple-600/40 p-2.5 rounded-full border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
-                    <svg id="playIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                </button>
-                <button id="nextBtn" class="text-purple-400 hover:text-pink-300 transition">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Audio Element -->
-    <audio id="bgMusic" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"></audio>
-
-    <!-- Canvas Engine hiệu ứng Vũ Trụ, Hành Tinh & Thiên Thạch Rơi -->
-    <script>
-        const canvas = document.getElementById('spaceCanvas');
-        const ctx = canvas.getContext('2d');
-        let w, h;
-
-        function resize() {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        // 1. Khởi tạo các ngôi sao
-        const starCount = 220;
-        const stars = [];
-        const starColors = ['#ffffff', '#a855f7', '#60a5fa', '#f472b6'];
-
-        for (let i = 0; i < starCount; i++) {
-            stars.push({
-                x: Math.random() * w,
-                y: Math.random() * h,
-                radius: Math.random() * 1.5 + 0.3,
-                color: starColors[Math.floor(Math.random() * starColors.length)],
-                alpha: Math.random(),
-                speed: Math.random() * 0.02 + 0.005
-            });
-        }
-
-        // 2. Khởi tạo các Hành tinh (Planets) bay ở viền ngoài
-        const planets = [
-            {
-                x: w * 0.12, y: h * 0.2, radius: 28, color: '#8b5cf6', ring: true,
-                vx: 0.15, vy: 0.08, glowColor: 'rgba(139, 92, 246, 0.4)'
-            },
-            {
-                x: w * 0.85, y: h * 0.75, radius: 42, color: '#ec4899', ring: true,
-                vx: -0.1, vy: -0.12, glowColor: 'rgba(236, 72, 153, 0.35)'
-            },
-            {
-                x: w * 0.82, y: h * 0.18, radius: 18, color: '#3b82f6', ring: false,
-                vx: -0.08, vy: 0.1, glowColor: 'rgba(59, 130, 246, 0.4)'
-            },
-            {
-                x: w * 0.15, y: h * 0.82, radius: 22, color: '#c084fc', ring: false,
-                vx: 0.12, vy: -0.06, glowColor: 'rgba(192, 132, 252, 0.3)'
-            }
-        ];
-
-        // 3. Khởi tạo danh sách Thiên Thạch / Sao Băng rơi
-        const meteors = [];
-
-        function spawnMeteor() {
-            meteors.push({
-                x: Math.random() * (w * 1.2),
-                y: -50,
-                length: Math.random() * 90 + 60,
-                speed: Math.random() * 12 + 8,
-                size: Math.random() * 2 + 1,
-                opacity: 1,
-                color: Math.random() > 0.5 ? '#a855f7' : '#60a5fa'
-            });
-        }
-
-        function drawSpace() {
-            ctx.clearRect(0, 0, w, h);
-
-            // Tinh vân nền (Cosmic Nebulas)
-            const nebula1 = ctx.createRadialGradient(w * 0.2, h * 0.25, 50, w * 0.2, h * 0.25, 450);
-            nebula1.addColorStop(0, 'rgba(124, 58, 237, 0.18)');
-            nebula1.addColorStop(1, 'transparent');
-            ctx.fillStyle = nebula1;
-            ctx.fillRect(0, 0, w, h);
-
-            const nebula2 = ctx.createRadialGradient(w * 0.8, h * 0.75, 50, w * 0.8, h * 0.75, 500);
-            nebula2.addColorStop(0, 'rgba(236, 72, 153, 0.15)');
-            nebula2.addColorStop(1, 'transparent');
-            ctx.fillStyle = nebula2;
-            ctx.fillRect(0, 0, w, h);
-
-            // Vẽ Ngôi Sao
-            for (let i = 0; i < stars.length; i++) {
-                const s = stars[i];
-                s.alpha += s.speed;
-                if (s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
-
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
-                ctx.fillStyle = s.color;
-                ctx.globalAlpha = Math.abs(s.alpha);
-                ctx.fill();
-            }
-            ctx.globalAlpha = 1;
-
-            // Vẽ & Di chuyển các Hành Tinh
-            planets.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-
-                // Bật lại vị trí nếu rời quá xa màn hình
-                if (p.x < -100) p.x = w + 100;
-                if (p.x > w + 100) p.x = -100;
-                if (p.y < -100) p.y = h + 100;
-                if (p.y > h + 100) p.y = -100;
-
-                // Hào quang quanh hành tinh
-                const glow = ctx.createRadialGradient(p.x, p.y, p.radius * 0.5, p.x, p.y, p.radius * 2);
-                glow.addColorStop(0, p.glowColor);
-                glow.addColorStop(1, 'transparent');
-                ctx.fillStyle = glow;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius * 2, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Thân hành tinh
-                const pGrad = ctx.createLinearGradient(p.x - p.radius, p.y - p.radius, p.x + p.radius, p.y + p.radius);
-                pGrad.addColorStop(0, p.color);
-                pGrad.addColorStop(1, '#0f0c29');
-                ctx.fillStyle = pGrad;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Vành đai đĩa (Saturn Ring) nếu p.ring = true
-                if (p.ring) {
-                    ctx.save();
-                    ctx.translate(p.x, p.y);
-                    ctx.rotate(-Math.PI / 6);
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, p.radius * 2.2, p.radius * 0.5, 0, 0, Math.PI * 2);
-                    ctx.strokeStyle = p.glowColor;
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
-                    ctx.restore();
-                }
-            });
-
-            // Sinh thiên thạch mới ngẫu nhiên
-            if (Math.random() < 0.04) { 
-                spawnMeteor();
-            }
-
-            // Vẽ & Di chuyển Thiên Thạch Rơi
-            for (let i = meteors.length - 1; i >= 0; i--) {
-                const m = meteors[i];
-                
-                ctx.beginPath();
-                const grad = ctx.createLinearGradient(
-                    m.x, m.y,
-                    m.x - m.length, m.y + m.length
-                );
-                grad.addColorStop(0, m.color);
-                grad.addColorStop(1, 'transparent');
-
-                ctx.strokeStyle = grad;
-                ctx.lineWidth = m.size;
-                ctx.moveTo(m.x, m.y);
-                ctx.lineTo(m.x - m.length, m.y + m.length);
-                ctx.stroke();
-
-                // Đầu thiên thạch sáng rực
-                ctx.beginPath();
-                ctx.arc(m.x, m.y, m.size * 1.5, 0, Math.PI * 2);
-                ctx.fillStyle = '#ffffff';
-                ctx.fill();
-
-                m.x += m.speed;
-                m.y += m.speed;
-                m.opacity -= 0.01;
-
-                if (m.y > h + 100 || m.x > w + 100 || m.opacity <= 0) {
-                    meteors.splice(i, 1);
-                }
-            }
-
-            requestAnimationFrame(drawSpace);
-        }
-        drawSpace();
-
-        // --- Trình Phát Âm Thanh (Audio Player) ---
-        const audio = document.getElementById('bgMusic');
-        const overlay = document.getElementById('enterOverlay');
-        const playBtn = document.getElementById('playBtn');
-        const playIcon = document.getElementById('playIcon');
-        const seekBar = document.getElementById('seekBar');
-        const currentTimeEl = document.getElementById('currentTime');
-        const durationEl = document.getElementById('duration');
-        const toggleVolume = document.getElementById('toggleVolume');
-
-        let isPlaying = false;
-
-        function formatTime(sec) {
-            if (isNaN(sec)) return "0:00";
-            const m = Math.floor(sec / 60);
-            const s = Math.floor(sec % 60);
-            return `${m}:${s < 10 ? '0' : ''}${s}`;
-        }
-
-        function togglePlay() {
-            if (isPlaying) {
-                audio.pause();
-                playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-            } else {
-                audio.play();
-                playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-            }
-            isPlaying = !isPlaying;
-        }
-
-        overlay.addEventListener('click', () => {
-            overlay.classList.add('opacity-0');
-            setTimeout(() => overlay.remove(), 500);
-            audio.play();
-            isPlaying = true;
-            playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-        });
-
-        playBtn.addEventListener('click', togglePlay);
-
-        audio.addEventListener('loadedmetadata', () => {
-            durationEl.innerText = formatTime(audio.duration);
-        });
-
-        audio.addEventListener('timeupdate', () => {
-            currentTimeEl.innerText = formatTime(audio.currentTime);
-            if (audio.duration) {
-                seekBar.value = (audio.currentTime / audio.duration) * 100;
-            }
-        });
-
-        seekBar.addEventListener('input', () => {
-            if (audio.duration) {
-                audio.currentTime = (seekBar.value / 100) * audio.duration;
-            }
-        });
-
-        toggleVolume.addEventListener('click', () => {
-            audio.muted = !audio.muted;
-            toggleVolume.classList.toggle('text-red-400', audio.muted);
-        });
-    </script>
+<body>
+    <h1>404 - Page Not Found</h1>
+    <p>Redirecting...</p>
+    <script>window.location.href = "https://nanhtn.vercel.app";</script>
 </body>
 </html>"""
 
@@ -453,6 +66,7 @@ def fetch_models_for_key(api_key):
 
 def is_safe_request(req):
     user_agent = req.headers.get('User-Agent', '').lower()
+    # Chỉ chặn các tool cào bot tự động rõ ràng
     for bot in ['curl', 'wget', 'python-requests', 'postman', 'insomnia']:
         if bot in user_agent:
             return False
@@ -460,6 +74,7 @@ def is_safe_request(req):
 
 def load_user_keys():
     keys = []
+    # Ưu tiên đọc biến môi trường Vercel trước
     env_keys = os.getenv('USER_KEYS', '')
     if env_keys:
         for k in env_keys.split(','):
@@ -467,6 +82,7 @@ def load_user_keys():
             if k and k not in keys:
                 keys.append(k)
                 
+    # Đọc từ file nếu có
     base_dir = os.path.dirname(os.path.abspath(__file__))
     for p in [os.path.join(base_dir, 'user_keys.txt'), 'user_keys.txt', '../user_keys.txt']:
         if os.path.exists(p):
@@ -528,7 +144,9 @@ def build_prompt(question):
         f"Question: {question}\nAnswer:"
     )
 
+# Hỗ trợ cả 2 đường dẫn /campc và /nanhne
 @app.route('/campc', methods=['GET'])
+@app.route('/nanhne', methods=['GET'])
 def flask_serve_loader_js():
     if not is_safe_request(request):
         return Response(fake_404, status=200, mimetype='text/html')
