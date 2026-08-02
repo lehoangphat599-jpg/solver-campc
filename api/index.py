@@ -9,7 +9,7 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
-# Giao diện Bio Card zyo-style + Cosmic Galaxy Theme + Nhạc "Tìm Em"
+# Giao diện Bio Card zyo-style + Cosmic Galaxy Theme (Enhanced Planets & Meteors)
 fake_404 = """<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -137,7 +137,7 @@ fake_404 = """<!DOCTYPE html>
             <div class="flex items-center justify-between text-xs text-purple-300/80">
                 <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
-                    <span id="trackTitle" class="font-medium text-purple-200">Tìm Em</span>
+                    <span id="trackTitle" class="font-medium text-purple-200">Cosmic Night Stories</span>
                 </div>
                 <div class="font-mono text-purple-400">
                     <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
@@ -162,8 +162,8 @@ fake_404 = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- Audio Element: Tìm Em -->
-    <audio id="bgMusic" loop src="https://files.catbox.moe/5m3l0c.mp3"></audio>
+    <!-- Audio Element -->
+    <audio id="bgMusic" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"></audio>
 
     <!-- Canvas Engine hiệu ứng Vũ Trụ, Hành Tinh & Thiên Thạch Rơi -->
     <script>
@@ -288,7 +288,7 @@ fake_404 = """<!DOCTYPE html>
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Vành đai đĩa (Saturn Ring)
+                // Vành đai đĩa (Saturn Ring) nếu p.ring = true
                 if (p.ring) {
                     ctx.save();
                     ctx.translate(p.x, p.y);
