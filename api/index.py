@@ -9,7 +9,7 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
-# Giao diện Bio Card zyo-style + Cosmic Galaxy Theme + Audio Player
+# Giao diện Bio Card zyo-style + Cosmic Galaxy Theme (Enhanced Planets & Meteors)
 fake_404 = """<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -87,7 +87,7 @@ fake_404 = """<!DOCTYPE html>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <!-- Canvas Vũ Trụ: Ngôi sao nhấp nháy, bụi không gian & Sao băng -->
+    <!-- Canvas Vũ Trụ: Ngôi sao, Bụi tinh vân, Hành tinh di chuyển & Mưa Thiên Thạch -->
     <canvas id="spaceCanvas"></canvas>
 
     <!-- Nút Loa Mute/Unmute -->
@@ -162,10 +162,10 @@ fake_404 = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- Audio Element (Thay link mp3 vũ trụ / lofi của bạn) -->
+    <!-- Audio Element -->
     <audio id="bgMusic" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"></audio>
 
-    <!-- Canvas Engine hiệu ứng Vũ Trụ & Sao Băng -->
+    <!-- Canvas Engine hiệu ứng Vũ Trụ, Hành Tinh & Thiên Thạch Rơi -->
     <script>
         const canvas = document.getElementById('spaceCanvas');
         const ctx = canvas.getContext('2d');
@@ -178,8 +178,8 @@ fake_404 = """<!DOCTYPE html>
         window.addEventListener('resize', resize);
         resize();
 
-        // Khởi tạo các ngôi sao
-        const starCount = 200;
+        // 1. Khởi tạo các ngôi sao
+        const starCount = 220;
         const stars = [];
         const starColors = ['#ffffff', '#a855f7', '#60a5fa', '#f472b6'];
 
@@ -194,35 +194,58 @@ fake_404 = """<!DOCTYPE html>
             });
         }
 
-        // Khởi tạo Sao Băng (Shooting Stars)
-        let shootingStar = null;
-        function createShootingStar() {
-            shootingStar = {
-                x: Math.random() * w,
-                y: Math.random() * (h / 2),
-                length: Math.random() * 80 + 50,
-                speed: Math.random() * 10 + 6,
-                opacity: 1
-            };
+        // 2. Khởi tạo các Hành tinh (Planets) bay ở viền ngoài
+        const planets = [
+            {
+                x: w * 0.12, y: h * 0.2, radius: 28, color: '#8b5cf6', ring: true,
+                vx: 0.15, vy: 0.08, glowColor: 'rgba(139, 92, 246, 0.4)'
+            },
+            {
+                x: w * 0.85, y: h * 0.75, radius: 42, color: '#ec4899', ring: true,
+                vx: -0.1, vy: -0.12, glowColor: 'rgba(236, 72, 153, 0.35)'
+            },
+            {
+                x: w * 0.82, y: h * 0.18, radius: 18, color: '#3b82f6', ring: false,
+                vx: -0.08, vy: 0.1, glowColor: 'rgba(59, 130, 246, 0.4)'
+            },
+            {
+                x: w * 0.15, y: h * 0.82, radius: 22, color: '#c084fc', ring: false,
+                vx: 0.12, vy: -0.06, glowColor: 'rgba(192, 132, 252, 0.3)'
+            }
+        ];
+
+        // 3. Khởi tạo danh sách Thiên Thạch / Sao Băng rơi
+        const meteors = [];
+
+        function spawnMeteor() {
+            meteors.push({
+                x: Math.random() * (w * 1.2),
+                y: -50,
+                length: Math.random() * 90 + 60,
+                speed: Math.random() * 12 + 8,
+                size: Math.random() * 2 + 1,
+                opacity: 1,
+                color: Math.random() > 0.5 ? '#a855f7' : '#60a5fa'
+            });
         }
 
         function drawSpace() {
             ctx.clearRect(0, 0, w, h);
 
-            // Vẽ hiệu ứng Tinh vân nền (Cosmic Dust Gradient)
-            const nebula1 = ctx.createRadialGradient(w * 0.2, h * 0.3, 50, w * 0.2, h * 0.3, 400);
-            nebula1.addColorStop(0, 'rgba(124, 58, 237, 0.15)');
+            // Tinh vân nền (Cosmic Nebulas)
+            const nebula1 = ctx.createRadialGradient(w * 0.2, h * 0.25, 50, w * 0.2, h * 0.25, 450);
+            nebula1.addColorStop(0, 'rgba(124, 58, 237, 0.18)');
             nebula1.addColorStop(1, 'transparent');
             ctx.fillStyle = nebula1;
             ctx.fillRect(0, 0, w, h);
 
-            const nebula2 = ctx.createRadialGradient(w * 0.8, h * 0.7, 50, w * 0.8, h * 0.7, 450);
-            nebula2.addColorStop(0, 'rgba(236, 72, 153, 0.12)');
+            const nebula2 = ctx.createRadialGradient(w * 0.8, h * 0.75, 50, w * 0.8, h * 0.75, 500);
+            nebula2.addColorStop(0, 'rgba(236, 72, 153, 0.15)');
             nebula2.addColorStop(1, 'transparent');
             ctx.fillStyle = nebula2;
             ctx.fillRect(0, 0, w, h);
 
-            // Vẽ Ngôi Sao nhấp nháy
+            // Vẽ Ngôi Sao
             for (let i = 0; i < stars.length; i++) {
                 const s = stars[i];
                 s.alpha += s.speed;
@@ -236,31 +259,85 @@ fake_404 = """<!DOCTYPE html>
             }
             ctx.globalAlpha = 1;
 
-            // Vẽ Sao Băng
-            if (shootingStar) {
+            // Vẽ & Di chuyển các Hành Tinh
+            planets.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Bật lại vị trí nếu rời quá xa màn hình
+                if (p.x < -100) p.x = w + 100;
+                if (p.x > w + 100) p.x = -100;
+                if (p.y < -100) p.y = h + 100;
+                if (p.y > h + 100) p.y = -100;
+
+                // Hào quang quanh hành tinh
+                const glow = ctx.createRadialGradient(p.x, p.y, p.radius * 0.5, p.x, p.y, p.radius * 2);
+                glow.addColorStop(0, p.glowColor);
+                glow.addColorStop(1, 'transparent');
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius * 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Thân hành tinh
+                const pGrad = ctx.createLinearGradient(p.x - p.radius, p.y - p.radius, p.x + p.radius, p.y + p.radius);
+                pGrad.addColorStop(0, p.color);
+                pGrad.addColorStop(1, '#0f0c29');
+                ctx.fillStyle = pGrad;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Vành đai đĩa (Saturn Ring) nếu p.ring = true
+                if (p.ring) {
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(-Math.PI / 6);
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, p.radius * 2.2, p.radius * 0.5, 0, 0, Math.PI * 2);
+                    ctx.strokeStyle = p.glowColor;
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            });
+
+            // Sinh thiên thạch mới ngẫu nhiên
+            if (Math.random() < 0.04) { 
+                spawnMeteor();
+            }
+
+            // Vẽ & Di chuyển Thiên Thạch Rơi
+            for (let i = meteors.length - 1; i >= 0; i--) {
+                const m = meteors[i];
+                
                 ctx.beginPath();
                 const grad = ctx.createLinearGradient(
-                    shootingStar.x, shootingStar.y,
-                    shootingStar.x - shootingStar.length, shootingStar.y + shootingStar.length
+                    m.x, m.y,
+                    m.x - m.length, m.y + m.length
                 );
-                grad.addColorStop(0, `rgba(255, 255, 255, ${shootingStar.opacity})`);
+                grad.addColorStop(0, m.color);
                 grad.addColorStop(1, 'transparent');
 
                 ctx.strokeStyle = grad;
-                ctx.lineWidth = 2;
-                ctx.moveTo(shootingStar.x, shootingStar.y);
-                ctx.lineTo(shootingStar.x - shootingStar.length, shootingStar.y + shootingStar.length);
+                ctx.lineWidth = m.size;
+                ctx.moveTo(m.x, m.y);
+                ctx.lineTo(m.x - m.length, m.y + m.length);
                 ctx.stroke();
 
-                shootingStar.x += shootingStar.speed;
-                shootingStar.y += shootingStar.speed;
-                shootingStar.opacity -= 0.015;
+                // Đầu thiên thạch sáng rực
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, m.size * 1.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
 
-                if (shootingStar.opacity <= 0 || shootingStar.x > w || shootingStar.y > h) {
-                    shootingStar = null;
+                m.x += m.speed;
+                m.y += m.speed;
+                m.opacity -= 0.01;
+
+                if (m.y > h + 100 || m.x > w + 100 || m.opacity <= 0) {
+                    meteors.splice(i, 1);
                 }
-            } else if (Math.random() < 0.015) { // 1.5% cơ hội xuất hiện sao băng mỗi frame
-                createShootingStar();
             }
 
             requestAnimationFrame(drawSpace);
