@@ -105,14 +105,16 @@ fake_404 = """<!DOCTYPE html>
     <!-- Container Card Căn Giữa -->
     <div class="main-card rounded-2xl p-6 md:p-8 max-w-lg w-full text-center flex flex-col items-center transition-all duration-500 hover:border-purple-500/60 hover:shadow-[0_0_60px_rgba(168,85,247,0.4)]">
         
-        <!-- Khung chứa Banner ASCII Art -->
-        <div class="w-full bg-[#07051a]/90 border border-purple-900/50 rounded-xl p-4 mb-6 overflow-x-auto flex items-center justify-center shadow-inner">
-            <pre class="ascii-banner font-bold select-none whitespace-pre text-left">
+        <!-- Khung chứa Banner ASCII Art / Ảnh Bìa (Có lớp Overlay đè lên) -->
+        <div class="w-full bg-[#07051a]/90 border border-purple-900/50 rounded-xl p-4 mb-6 overflow-hidden flex items-center justify-center shadow-inner relative group">
+            
+            <!-- Nền ASCII Art làm Banner -->
+            <pre class="ascii-banner font-bold select-none whitespace-pre text-left opacity-40 transition-opacity duration-300 group-hover:opacity-60">
 ⠤⣤⣤⣤⣄⣀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣠⣤⠤⠤⠴⠶⠶⠶⠶
 ⢠⣤⣤⡄⣤⣤⣤⠄⣀⠉⣉⣙⠒⠤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠴⠘⣉⢡⣤⡤⠐⣶⡆⢶⠀⣶⣶⡦
 ⣄⢻⣿⣧⠻⠇⠋⠀⠋⠀⢘⣿⢳⣦⣌⠳⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠞⣡⣴⣧⠻⣄⢸⣿⣿⡟⢁⡻⣸⣿⡿⠁
 ⠈⠃⠙⢿⣧⣙⠶⣿⣿⡷⢘⣡⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿⣷⣝⡳⠶⠶⠾⣛⣵⡿⠋⠀⠀
-⠀⠀⠀⠀⠉⠻⣿⣶⠂⠘⠛⠛⠛⢛⡛⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠛⠀⠉⠒⠛⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠉⠻⣿⣶⠂☶⠛⠛⠛⢛⡛⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠛⠀⠉⠒⠛⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⢸⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -120,6 +122,13 @@ fake_404 = """<!DOCTYPE html>
 ⠀⠀⠀⠀⠀⠀⠘⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠿⠀⠀⠀</pre>
+
+            <!-- LớpOverlay đè chính giữa Ảnh Bìa -->
+            <div class="absolute inset-0 flex items-center justify-center bg-purple-950/30 backdrop-blur-[2px]">
+                <span class="cosmic-title text-xl md:text-2xl font-black tracking-widest uppercase px-5 py-2 bg-[#030014]/80 border border-purple-500/60 rounded-xl shadow-[0_0_25px_rgba(168,85,247,0.6)]">
+                    CamPC Real
+                </span>
+            </div>
         </div>
 
         <!-- Cosmic Tag Badge -->
