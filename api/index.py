@@ -9,7 +9,7 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
-# Giao diện Bio Card zyo-style + Cosmic Galaxy Theme (Enhanced Planets & Meteors)
+# api solver CamPC Real v1 
 fake_404 = """<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -124,12 +124,12 @@ fake_404 = """<!DOCTYPE html>
 
         <!-- Cosmic Tag Badge -->
         <div class="inline-block bg-purple-950/80 border border-purple-600/50 text-purple-300 text-xs font-bold px-4 py-1.5 rounded-full mb-3 tracking-wide shadow-[0_0_12px_rgba(168,85,247,0.3)]">
-            CampC Real
+            CamPC Real
         </div>
 
         <!-- Title Cosmic -->
         <h1 class="cosmic-title text-2xl font-extrabold tracking-wider mb-6">
-            CampC Real
+            CamPC Real
         </h1>
 
         <!-- Audio Player Widget Cosmic Style -->
