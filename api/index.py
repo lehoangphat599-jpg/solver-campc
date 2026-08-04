@@ -126,7 +126,7 @@ fake_404 = """<!DOCTYPE html>
             <!-- LớpOverlay đè chính giữa Ảnh Bìa -->
             <div class="absolute inset-0 flex items-center justify-center bg-purple-950/30 backdrop-blur-[2px]">
                 <span class="cosmic-title text-xl md:text-2xl font-black tracking-widest uppercase px-5 py-2 bg-[#030014]/80 border border-purple-500/60 rounded-xl shadow-[0_0_25px_rgba(168,85,247,0.6)]">
-                    CamPC Real
+                    Hoang Phat Solver 
                 </span>
             </div>
         </div>
@@ -138,7 +138,7 @@ fake_404 = """<!DOCTYPE html>
 
         <!-- Title Cosmic -->
         <h1 class="cosmic-title text-2xl font-extrabold tracking-wider mb-6">
-            CamPC Real
+            Hoang Phat Solver 
         </h1>
 
         <!-- Audio Player Widget Cosmic Style -->
