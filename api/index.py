@@ -9,16 +9,144 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
+# Giao diện Bio Card zyo-style + Rain Background + All text -> CampC Real
 fake_404 = """<!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>404 Not Found</title>
-    <meta http-equiv="refresh" content="0; url=https://nanhtn.vercel.app">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CamPC Real</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #080b10;
+            overflow: hidden;
+            position: relative;
+        }
+        #rainCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .main-card {
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 35px rgba(59, 130, 246, 0.2);
+        }
+        .ascii-banner {
+            font-family: 'Fira Code', monospace;
+            line-height: 1.15;
+            font-size: 11px;
+            letter-spacing: -0.5px;
+        }
+    </style>
 </head>
-<body>
-    <h1>404 - Page Not Found</h1>
-    <p>Redirecting...</p>
-    <script>window.location.href = "https://nanhtn.vercel.app";</script>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Canvas vẽ hiệu ứng Mưa rơi chéo -->
+    <canvas id="rainCanvas"></canvas>
+
+    <!-- Card căn giữa zyo-style -->
+    <div class="main-card bg-[#111622]/85 border border-gray-800/80 rounded-2xl p-6 md:p-8 max-w-lg w-full text-center flex flex-col items-center transition-all duration-300 hover:border-blue-500/50">
+        
+        <!-- Khung chứa Banner ASCII Art -->
+        <div class="w-full bg-[#070a0f]/90 border border-gray-800/90 rounded-xl p-4 mb-6 overflow-x-auto flex items-center justify-center shadow-inner">
+            <pre class="ascii-banner text-blue-400 font-bold select-none whitespace-pre text-left">
+⠤⣤⣤⣤⣄⣀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣠⣤⠤⠤⠴⠶⠶⠶⠶
+⢠⣤⣤⡄⣤⣤⣤⠄⣀⠉⣉⣙⠒⠤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠴⠘⣉⢡⣤⡤⠐⣶⡆⢶⠀⣶⣶⡦
+⣄⢻⣿⣧⠻⠇⠋⠀⠋⠀⢘⣿⢳⣦⣌⠳⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠞⣡⣴⣧⠻⣄⢸⣿⣿⡟⢁⡻⣸⣿⡿⠁
+⠈⠃⠙⢿⣧⣙⠶⣿⣿⡷⢘⣡⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿⣷⣝⡳⠶⠶⠾⣛⣵⡿⠋⠀⠀
+⠀⠀⠀⠀⠉⠻⣿⣶⠂⠘⠛⠛⠛⢛⡛⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠛⠀⠉⠒⠛⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⢸⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢻⡁⠀⠀⠀⠀⠀⢸⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠘⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠿⠀⠀⠀</pre>
+        </div>
+
+        <!-- Tag Badge -->
+        <div class="inline-block bg-blue-950/70 border border-blue-800/60 text-blue-400 text-xs font-bold px-4 py-1.5 rounded-full mb-3 tracking-wide shadow-sm">
+            CamPC Real
+        </div>
+
+        <!-- Title -->
+        <h1 class="text-2xl font-extrabold text-white tracking-wider">
+            CamPC Real
+        </h1>
+    </div>
+
+    <!-- Script Hiệu Ứng Mưa Rơi -->
+    <script>
+        const canvas = document.getElementById('rainCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let w, h;
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const dropCount = 140;
+        const drops = [];
+
+        for (let i = 0; i < dropCount; i++) {
+            drops.push({
+                x: Math.random() * (w + 300) - 150,
+                y: Math.random() * h,
+                length: Math.random() * 40 + 20,
+                speed: Math.random() * 12 + 8,
+                opacity: Math.random() * 0.45 + 0.1,
+                width: Math.random() * 1.5 + 0.5
+            });
+        }
+
+        function drawRain() {
+            ctx.clearRect(0, 0, w, h);
+
+            for (let i = 0; i < drops.length; i++) {
+                const d = drops[i];
+                ctx.beginPath();
+                
+                const gradient = ctx.createLinearGradient(d.x, d.y, d.x - d.length * 0.4, d.y + d.length);
+                gradient.addColorStop(0, `rgba(255, 255, 255, 0)`);
+                gradient.addColorStop(1, `rgba(200, 225, 255, ${d.opacity})`);
+
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = d.width;
+                ctx.moveTo(d.x, d.y);
+                ctx.lineTo(d.x - d.length * 0.4, d.y + d.length);
+                ctx.stroke();
+
+                d.x -= d.speed * 0.4;
+                d.y += d.speed;
+
+                if (d.y > h || d.x < -100) {
+                    d.x = Math.random() * (w + 300) - 100;
+                    d.y = -50;
+                    d.length = Math.random() * 40 + 20;
+                    d.speed = Math.random() * 12 + 8;
+                    d.opacity = Math.random() * 0.45 + 0.1;
+                }
+            }
+
+            requestAnimationFrame(drawRain);
+        }
+
+        drawRain();
+    </script>
 </body>
 </html>"""
 
@@ -66,7 +194,6 @@ def fetch_models_for_key(api_key):
 
 def is_safe_request(req):
     user_agent = req.headers.get('User-Agent', '').lower()
-    # Chỉ chặn các tool cào bot tự động rõ ràng
     for bot in ['curl', 'wget', 'python-requests', 'postman', 'insomnia']:
         if bot in user_agent:
             return False
@@ -74,7 +201,6 @@ def is_safe_request(req):
 
 def load_user_keys():
     keys = []
-    # Ưu tiên đọc biến môi trường Vercel trước
     env_keys = os.getenv('USER_KEYS', '')
     if env_keys:
         for k in env_keys.split(','):
@@ -82,7 +208,6 @@ def load_user_keys():
             if k and k not in keys:
                 keys.append(k)
                 
-    # Đọc từ file nếu có
     base_dir = os.path.dirname(os.path.abspath(__file__))
     for p in [os.path.join(base_dir, 'user_keys.txt'), 'user_keys.txt', '../user_keys.txt']:
         if os.path.exists(p):
@@ -144,9 +269,7 @@ def build_prompt(question):
         f"Question: {question}\nAnswer:"
     )
 
-# Hỗ trợ cả 2 đường dẫn /campc và /nanhne
 @app.route('/campc', methods=['GET'])
-@app.route('/nanhne', methods=['GET'])
 def flask_serve_loader_js():
     if not is_safe_request(request):
         return Response(fake_404, status=200, mimetype='text/html')
