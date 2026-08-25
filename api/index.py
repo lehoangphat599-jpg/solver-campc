@@ -9,147 +9,18 @@ import threading
 app = Flask(__name__)
 CORS(app)
 
-# Giao diện Bio Card zyo-style + Rain Background + All text -> CampC Real
 fake_404 = """<!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CamPC Real</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #080b10;
-            overflow: hidden;
-            position: relative;
-        }
-        #rainCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1;
-            pointer-events: none;
-        }
-        .main-card {
-            position: relative;
-            z-index: 10;
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 35px rgba(59, 130, 246, 0.2);
-        }
-        .ascii-banner {
-            font-family: 'Fira Code', monospace;
-            line-height: 1.15;
-            font-size: 11px;
-            letter-spacing: -0.5px;
-        }
-    </style>
+    <title>404 Not Found</title>
+    <meta http-equiv="refresh" content="0; url=https://nanhtn.vercel.app">
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
-
-    <!-- Canvas vẽ hiệu ứng Mưa rơi chéo -->
-    <canvas id="rainCanvas"></canvas>
-
-    <!-- Card căn giữa zyo-style -->
-    <div class="main-card bg-[#111622]/85 border border-gray-800/80 rounded-2xl p-6 md:p-8 max-w-lg w-full text-center flex flex-col items-center transition-all duration-300 hover:border-blue-500/50">
-        
-        <!-- Khung chứa Banner ASCII Art -->
-        <div class="w-full bg-[#070a0f]/90 border border-gray-800/90 rounded-xl p-4 mb-6 overflow-x-auto flex items-center justify-center shadow-inner">
-            <pre class="ascii-banner text-blue-400 font-bold select-none whitespace-pre text-left">
-⠤⣤⣤⣤⣄⣀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣠⣤⠤⠤⠴⠶⠶⠶⠶
-⢠⣤⣤⡄⣤⣤⣤⠄⣀⠉⣉⣙⠒⠤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠴⠘⣉⢡⣤⡤⠐⣶⡆⢶⠀⣶⣶⡦
-⣄⢻⣿⣧⠻⠇⠋⠀⠋⠀⢘⣿⢳⣦⣌⠳⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠞⣡⣴⣧⠻⣄⢸⣿⣿⡟⢁⡻⣸⣿⡿⠁
-⠈⠃⠙⢿⣧⣙⠶⣿⣿⡷⢘⣡⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿⣷⣝⡳⠶⠶⠾⣛⣵⡿⠋⠀⠀
-⠀⠀⠀⠀⠉⠻⣿⣶⠂⠘⠛⠛⠛⢛⡛⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠛⠀⠉⠒⠛⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⢸⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⢻⡁⠀⠀⠀⠀⠀⢸⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠘⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠿⠀⠀⠀</pre>
-        </div>
-
-        <!-- Tag Badge -->
-        <div class="inline-block bg-blue-950/70 border border-blue-800/60 text-blue-400 text-xs font-bold px-4 py-1.5 rounded-full mb-3 tracking-wide shadow-sm">
-            CamPC Real
-        </div>
-
-        <!-- Title -->
-        <h1 class="text-2xl font-extrabold text-white tracking-wider">
-            CamPC Real
-        </h1>
-    </div>
-
-    <!-- Script Hiệu Ứng Mưa Rơi -->
-    <script>
-        const canvas = document.getElementById('rainCanvas');
-        const ctx = canvas.getContext('2d');
-
-        let w, h;
-        function resize() {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        const dropCount = 140;
-        const drops = [];
-
-        for (let i = 0; i < dropCount; i++) {
-            drops.push({
-                x: Math.random() * (w + 300) - 150,
-                y: Math.random() * h,
-                length: Math.random() * 40 + 20,
-                speed: Math.random() * 12 + 8,
-                opacity: Math.random() * 0.45 + 0.1,
-                width: Math.random() * 1.5 + 0.5
-            });
-        }
-
-        function drawRain() {
-            ctx.clearRect(0, 0, w, h);
-
-            for (let i = 0; i < drops.length; i++) {
-                const d = drops[i];
-                ctx.beginPath();
-                
-                const gradient = ctx.createLinearGradient(d.x, d.y, d.x - d.length * 0.4, d.y + d.length);
-                gradient.addColorStop(0, `rgba(255, 255, 255, 0)`);
-                gradient.addColorStop(1, `rgba(200, 225, 255, ${d.opacity})`);
-
-                ctx.strokeStyle = gradient;
-                ctx.lineWidth = d.width;
-                ctx.moveTo(d.x, d.y);
-                ctx.lineTo(d.x - d.length * 0.4, d.y + d.length);
-                ctx.stroke();
-
-                d.x -= d.speed * 0.4;
-                d.y += d.speed;
-
-                if (d.y > h || d.x < -100) {
-                    d.x = Math.random() * (w + 300) - 100;
-                    d.y = -50;
-                    d.length = Math.random() * 40 + 20;
-                    d.speed = Math.random() * 12 + 8;
-                    d.opacity = Math.random() * 0.45 + 0.1;
-                }
-            }
-
-            requestAnimationFrame(drawRain);
-        }
-
-        drawRain();
-    </script>
+<body>
+    <h1>404 - Page Not Found</h1>
+    <p>Redirecting...</p>
+    <script>window.location.href = "https://nanhtn.vercel.app";</script>
 </body>
 </html>"""
-
 _model_cache = {}
 _model_cache_lock = threading.Lock()
 FREE_MODELS_FALLBACK = [
@@ -160,7 +31,6 @@ FREE_MODELS_FALLBACK = [
     'gemma2-9b-it',
     'mistral-saba-24b',
 ]
-
 def fetch_models_for_key(api_key):
     with _model_cache_lock:
         if api_key in _model_cache:
@@ -194,51 +64,50 @@ def fetch_models_for_key(api_key):
 
 def is_safe_request(req):
     user_agent = req.headers.get('User-Agent', '').lower()
-    for bot in ['curl', 'wget', 'python-requests', 'postman', 'insomnia']:
+    for bot in ['curl', 'postman', 'wget', 'python', 'urllib', 'httpclient',
+                'insomnia', 'node-fetch', 'axios', 'go-http-client', 'java', 'ruby', 'perl', 'php']:
         if bot in user_agent:
             return False
+    if not user_agent or len(user_agent) < 40 or 'mozilla' not in user_agent:
+        return False
     return True
 
 def load_user_keys():
     keys = []
+    for p in ['user_keys.txt', '../user_keys.txt']:
+        if os.path.exists(p):
+            with open(p, 'r') as f:
+                for line in f:
+                    k = line.strip()
+                    if k:
+                        keys.append(k)
+            if keys:
+                break
     env_keys = os.getenv('USER_KEYS', '')
     if env_keys:
         for k in env_keys.split(','):
             k = k.strip()
             if k and k not in keys:
                 keys.append(k)
-                
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    for p in [os.path.join(base_dir, 'user_keys.txt'), 'user_keys.txt', '../user_keys.txt']:
-        if os.path.exists(p):
-            with open(p, 'r', encoding='utf-8') as f:
-                for line in f:
-                    k = line.strip()
-                    if k and k not in keys:
-                        keys.append(k)
-            if keys:
-                break
     return keys
 
 def load_keys():
     keys = []
+    for p in ['groq.txt', '../groq.txt']:
+        if os.path.exists(p):
+            with open(p, 'r') as f:
+                for line in f:
+                    k = line.strip()
+                    if k:
+                        keys.append(k)
+            if keys:
+                break
     env_keys = os.getenv('GROQ_KEYS', '')
     if env_keys:
         for k in env_keys.split(','):
             k = k.strip()
             if k and k not in keys:
                 keys.append(k)
-                
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    for p in [os.path.join(base_dir, 'groq.txt'), 'groq.txt', '../groq.txt']:
-        if os.path.exists(p):
-            with open(p, 'r', encoding='utf-8') as f:
-                for line in f:
-                    k = line.strip()
-                    if k and k not in keys:
-                        keys.append(k)
-            if keys:
-                break
     return keys
 
 def clean_answer(answer):
@@ -269,16 +138,16 @@ def build_prompt(question):
         f"Question: {question}\nAnswer:"
     )
 
-@app.route('/campc', methods=['GET'])
+@app.route('/nanhne', methods=['GET'])
 def flask_serve_loader_js():
     if not is_safe_request(request):
-        return Response(fake_404, status=200, mimetype='text/html')
-        
+        return Response(fake_404, status=404, mimetype='text/html')
+    if request.headers.get('Sec-Fetch-Dest', '') == 'document':
+        return Response(fake_404, status=404, mimetype='text/html')
     user_key = request.args.get('user_key', '').strip()
     valid_user_keys = load_user_keys()
     if not user_key or (valid_user_keys and user_key not in valid_user_keys):
-        return Response(fake_404, status=200, mimetype='text/html')
-
+        return Response(fake_404, status=404, mimetype='text/html')
     payload_url = request.host_url.rstrip('/') + f'/api/payload?user_key={user_key}'
     loader_script = f"""
     (async function() {{
@@ -299,13 +168,17 @@ def flask_serve_loader_js():
 @app.route('/api/payload', methods=['GET'])
 def flask_serve_payload_js():
     if not is_safe_request(request):
-        return Response(fake_404, status=200, mimetype='text/html')
-        
+        return Response(fake_404, status=404, mimetype='text/html')
+    origin = request.headers.get('Origin', '')
+    referer = request.headers.get('Referer', '')
+    if origin and 'discord.com' not in origin and 'hcaptcha.com' not in origin:
+        return Response(fake_404, status=404, mimetype='text/html')
+    elif referer and 'discord.com' not in referer and 'hcaptcha.com' not in referer:
+        return Response(fake_404, status=404, mimetype='text/html')
     user_key = request.args.get('user_key', '').strip()
     valid_user_keys = load_user_keys()
     if not user_key or (valid_user_keys and user_key not in valid_user_keys):
-        return Response(fake_404, status=200, mimetype='text/html')
-
+        return Response(fake_404, status=404, mimetype='text/html')
     api_url = request.host_url.rstrip('/') + '/api/solve'
     import string
     def r_name(length=10):
@@ -484,16 +357,20 @@ def solve_captcha():
     if request.method == 'OPTIONS':
         return '', 200
     if not is_safe_request(request):
-        return Response(fake_404, status=200, mimetype='text/html')
-
+        return Response(fake_404, status=404, mimetype='text/html')
+    origin = request.headers.get('Origin', '')
+    referer = request.headers.get('Referer', '')
+    if origin and 'discord.com' not in origin and 'hcaptcha.com' not in origin:
+        return Response(fake_404, status=404, mimetype='text/html')
+    elif referer and 'discord.com' not in referer and 'hcaptcha.com' not in referer:
+        return Response(fake_404, status=404, mimetype='text/html')
     data = request.json
     if not data or 'question' not in data:
-        return Response(fake_404, status=200, mimetype='text/html')
-        
+        return Response(fake_404, status=404, mimetype='text/html')
     provided_user_key = data.get('user_key', '').strip()
     valid_user_keys = load_user_keys()
     if not provided_user_key or (valid_user_keys and provided_user_key not in valid_user_keys):
-        return Response(fake_404, status=200, mimetype='text/html')
+        return Response(fake_404, status=404, mimetype='text/html')
 
     question = data['question']
     keys = load_keys()
@@ -502,6 +379,8 @@ def solve_captcha():
 
     system_prompt = build_prompt(question)
 
+    # ── Logic tuần tự: key 1 → thử tất cả model của key 1 (từ trên xuống)
+    #                   nếu hết → key 2 → thử tất cả model của key 2, ...
     for api_key in keys:
         models = fetch_models_for_key(api_key)
         key_exhausted = False
@@ -531,29 +410,35 @@ def solve_captcha():
                         answer = clean_answer(raw)
                         if 0 < len(answer) < 50:
                             return jsonify({'answer': answer})
+                    # Trả lời rỗng → thử model tiếp theo trong cùng key
 
                 elif resp.status_code == 429:
+                    # Key bị rate-limit → bỏ qua toàn bộ key này
                     key_exhausted = True
+                    # Xoá cache để lần sau fetch lại
                     with _model_cache_lock:
                         _model_cache.pop(api_key, None)
                     break
 
                 elif resp.status_code in (401, 403):
+                    # Key không hợp lệ → bỏ luôn key này
                     key_exhausted = True
                     break
 
+                # Các lỗi khác (500, 503, ...) → thử model tiếp theo
+
             except Exception:
-                continue
+                continue  # timeout hoặc lỗi mạng → thử model tiếp theo
 
         if key_exhausted:
-            continue
+            continue  # chuyển sang key tiếp theo
 
     return jsonify({'error': 'All keys and models failed'}), 500
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def catch_all(path):
-    return Response(fake_404, status=200, mimetype='text/html')
+    return Response(fake_404, status=404, mimetype='text/html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
